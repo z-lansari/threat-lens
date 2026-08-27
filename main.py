@@ -40,3 +40,9 @@ def analyze_ioc(request: IOCRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_ioc)
     return {"id": new_ioc.id, "ioc": new_ioc.ioc, "type": new_ioc.type, "created_at": new_ioc.created_at}
+
+
+@app.get("/history")
+def get_history(db: Session = Depends(get_db)):
+    iocs = db.query(IOC).all()
+    return iocs
