@@ -1,8 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from enum import Enum
+from sqlalchemy.orm import Session
+from database import SessionLocal
+from models import IOC
 
 app = FastAPI()
+
 
 class IOCType(str, Enum):
     ip = "ip"
@@ -10,14 +14,29 @@ class IOCType(str, Enum):
     url = "url"
     hash = "hash"
 
+
 class IOCRequest(BaseModel):
     ioc: str
     type: IOCType
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
 
+
 @app.post("/analyze")
-def analyze_ioc(request: IOCRequest):
-    return {"received_ioc": request.ioc, "received_type": request.type}
+def analyze_ioc(request: IOCRequest, db: Session = Depends(get_db)):
+    new_ioc = IOC(ioc=request.ioc, type=request.type)
+    db.add(new_ioc)
+    db.commit()
+    db.refresh(new_ioc)
+    return {"id": new_ioc.id, "ioc": new_ioc.ioc, "type": new_ioc.type, "created_at": new_ioc.created_at}
