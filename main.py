@@ -4,6 +4,7 @@ from enum import Enum
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import IOC
+from virustotal import check_ip
 
 app = FastAPI()
 
@@ -39,7 +40,18 @@ def analyze_ioc(request: IOCRequest, db: Session = Depends(get_db)):
     db.add(new_ioc)
     db.commit()
     db.refresh(new_ioc)
-    return {"id": new_ioc.id, "ioc": new_ioc.ioc, "type": new_ioc.type, "created_at": new_ioc.created_at}
+
+    vt_result = None
+    if request.type == "ip":
+        vt_result = check_ip(request.ioc)
+
+    return {
+        "id": new_ioc.id,
+        "ioc": new_ioc.ioc,
+        "type": new_ioc.type,
+        "created_at": new_ioc.created_at,
+        "virustotal": vt_result
+    }
 
 
 @app.get("/history")
