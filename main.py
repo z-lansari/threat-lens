@@ -55,7 +55,8 @@ def analyze_ioc(request: IOCRequest, db: Session = Depends(get_db)):
         abuse_result = abuseipdb.check_ip(request.ioc)
     elif request.type == "domain":
         vt_result = virustotal.check_domain(request.ioc)
-
+    elif request.type == "hash":
+        vt_result = virustotal.check_hash(request.ioc)
     return {
         "id": new_ioc.id,
         "ioc": new_ioc.ioc,

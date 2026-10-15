@@ -30,3 +30,7 @@ def check_ip(ip: str):
 
 def check_domain(domain: str):
     return _query(f"domains/{domain}")
+
+
+def check_hash(file_hash: str):
+    return _query(f"files/{file_hash}")
