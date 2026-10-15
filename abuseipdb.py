@@ -15,7 +15,12 @@ def check_ip(ip: str):
     }
     params = {"ipAddress": ip}
 
-    response = requests.get(url, headers=headers, params=params)
-    data = response.json()
+    try:
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+    except requests.exceptions.RequestException:
+        return {"error": "AbuseIPDB unreachable"}
 
-    return data["data"]
+    if response.status_code != 200:
+        return {"error": f"AbuseIPDB returned status {response.status_code}"}
+
+    return response.json()["data"]

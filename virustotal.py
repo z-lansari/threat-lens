@@ -11,9 +11,16 @@ def check_ip(ip: str):
     url = f"https://www.virustotal.com/api/v3/ip_addresses/{ip}"
     headers = {"x-apikey": VIRUSTOTAL_API_KEY}
 
-    response = requests.get(url, headers=headers)
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+    except requests.exceptions.RequestException:
+        return {"error": "VirusTotal unreachable"}
+
+    if response.status_code != 200:
+        return {
+            "error": f"VirusTotal returned status {response.status_code}"
+        }
+
     data = response.json()
 
-    stats = data["data"]["attributes"]["last_analysis_stats"]
-
-    return stats
+    return data["data"]["attributes"]["last_analysis_stats"]
