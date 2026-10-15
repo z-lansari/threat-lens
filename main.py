@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
+from validators import validate_ioc
 from pydantic import BaseModel
 from enum import Enum
 from sqlalchemy.orm import Session
@@ -37,6 +38,11 @@ def health_check():
 
 @app.post("/analyze")
 def analyze_ioc(request: IOCRequest, db: Session = Depends(get_db)):
+    if not validate_ioc(request.ioc, request.type.value):
+        raise HTTPException(
+            status_code=422,
+            detail=f"'{request.ioc}' is not a valid {request.type.value}"
+        )
     new_ioc = IOC(ioc=request.ioc, type=request.type)
     db.add(new_ioc)
     db.commit()
@@ -47,6 +53,8 @@ def analyze_ioc(request: IOCRequest, db: Session = Depends(get_db)):
     if request.type == "ip":
         vt_result = virustotal.check_ip(request.ioc)
         abuse_result = abuseipdb.check_ip(request.ioc)
+    elif request.type == "domain":
+        vt_result = virustotal.check_domain(request.ioc)
 
     return {
         "id": new_ioc.id,
