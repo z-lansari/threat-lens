@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+import base64
 
 load_dotenv()
 
@@ -34,3 +35,6 @@ def check_domain(domain: str):
 
 def check_hash(file_hash: str):
     return _query(f"files/{file_hash}")
+def check_url(url: str):
+    url_id = base64.urlsafe_b64encode(url.encode()).decode().strip("=")
+    return _query(f"urls/{url_id}")
