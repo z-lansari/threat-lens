@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, DateTime, JSON, Enum as SQLEnum
 from sqlalchemy.sql import func
 from database import Base
 import enum
@@ -18,3 +18,5 @@ class IOC(Base):
     ioc = Column(String, nullable=False)
     type = Column(SQLEnum(IOCType), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    virustotal_result = Column(JSON, nullable=True)
+    abuseipdb_result = Column(JSON, nullable=True)
