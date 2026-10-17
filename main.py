@@ -7,6 +7,7 @@ from database import SessionLocal
 from models import IOC
 import virustotal
 import abuseipdb
+from cache import find_cached
 
 app = FastAPI()
 
@@ -21,7 +22,7 @@ class IOCType(str, Enum):
 class IOCRequest(BaseModel):
     ioc: str
     type: IOCType
-
+    force_refresh: bool = False
 
 def get_db():
     db = SessionLocal()
@@ -43,6 +44,18 @@ def analyze_ioc(request: IOCRequest, db: Session = Depends(get_db)):
             status_code=422,
             detail=f"'{request.ioc}' is not a valid {request.type.value}"
         )
+    if not request.force_refresh:
+        cached = find_cached(db, request.ioc, request.type.value)
+        if cached:
+            return {
+                "id": cached.id,
+                "ioc": cached.ioc,
+                "type": cached.type,
+                "created_at": cached.created_at,
+                "virustotal": cached.virustotal_result,
+                "abuseipdb": cached.abuseipdb_result,
+                "cached": True
+            }
     new_ioc = IOC(ioc=request.ioc, type=request.type)
     db.add(new_ioc)
     db.commit()
@@ -70,7 +83,9 @@ def analyze_ioc(request: IOCRequest, db: Session = Depends(get_db)):
         "type": new_ioc.type,
         "created_at": new_ioc.created_at,
         "virustotal": vt_result,
-        "abuseipdb": abuse_result
+        "abuseipdb": abuse_result,
+        "cached": False
+
     }
 
 
