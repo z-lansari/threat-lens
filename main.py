@@ -8,7 +8,7 @@ from models import IOC
 import virustotal
 import abuseipdb
 from cache import find_cached
-
+from scoring import compute_threat_score
 app = FastAPI()
 
 
@@ -54,6 +54,7 @@ def analyze_ioc(request: IOCRequest, db: Session = Depends(get_db)):
                 "created_at": cached.created_at,
                 "virustotal": cached.virustotal_result,
                 "abuseipdb": cached.abuseipdb_result,
+                "threat": compute_threat_score(cached.virustotal_result, cached.abuseipdb_result),
                 "cached": True
             }
     new_ioc = IOC(ioc=request.ioc, type=request.type)
@@ -84,6 +85,7 @@ def analyze_ioc(request: IOCRequest, db: Session = Depends(get_db)):
         "created_at": new_ioc.created_at,
         "virustotal": vt_result,
         "abuseipdb": abuse_result,
+        "threat": compute_threat_score(vt_result, abuse_result),
         "cached": False
 
     }
