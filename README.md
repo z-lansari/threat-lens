@@ -6,9 +6,9 @@
 
 ThreatLens is deliberately vendor-neutral: it exposes a plain REST API, so a script, a SIEM/SOAR platform or any custom tool can call it the same way.
 
-<!-- Add a screenshot of the Swagger UI (/docs) here, for example:
 ![ThreatLens API docs](docs/swagger.png)
--->
+
+![Analysis of a known malicious file hash](docs/swagger-response.png)
 
 ## Features
 
